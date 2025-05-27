@@ -25,23 +25,6 @@ export class ActivitiesService {
   }
 
   async update(id: number, updateActivityDto: UpdateActivityDto) {
-    // const packagesAsociated = await this.prisma.activities.findUnique({
-    //   where: { id },
-    //   include: {
-    //     packages: true,
-    //   },
-    // });
-
-    // if (!packagesAsociated) {
-    //   throw new Error('No se encontro la actividad');
-    // }
-
-    // if (packagesAsociated.packages.length > 0) {
-    //   throw new Error(
-    //     'No se puede actualizar una actividad con paquetes asociados',
-    //   );
-    // }
-
     return this.prisma.activities.update({
       where: { id },
       data: updateActivityDto,
@@ -49,23 +32,6 @@ export class ActivitiesService {
   }
 
   async changeStatus(id: number) {
-    // const packagesAsociated = await this.prisma.activities.findUnique({
-    //   where: { id },
-    //   include: {
-    //     packages: true,
-    //   },
-    // });
-
-    // if (!packagesAsociated) {
-    //   throw new Error('No se encontro la actividad');
-    // }
-
-    // if (packagesAsociated.packages.length > 0) {
-    //   throw new Error(
-    //     'No se puede actualizar una actividad con paquetes asociados',
-    //   );
-    // }
-
     const activity = await this.prisma.activities.findUnique({
       where: { id },
     });
@@ -79,7 +45,7 @@ export class ActivitiesService {
         id,
       },
       data: {
-        status: !activity.status, // Toggle the status
+        status: !activity.status,
       },
     });
   }
