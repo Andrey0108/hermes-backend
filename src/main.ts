@@ -45,6 +45,7 @@ void bootstrap()
   .then(() => {
     console.log(`Running: http://localhost:${process.env.PORT ?? 3000}`);
   })
-  .catch(() => {
-    console.log('Error');
+  .catch((err) => {
+    console.error('Error during application bootstrap:', err);
+    process.exit(1); // Salir con un código de error
   });
