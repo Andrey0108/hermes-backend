@@ -36,7 +36,7 @@ export class JwtAuthGuard implements CanActivate {
     }
     try {
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET,
+        secret: process.env.JWT_SECRET || '',
       });
 
       // Validar si el token fue emitido antes de la última actualización de la contraseña
