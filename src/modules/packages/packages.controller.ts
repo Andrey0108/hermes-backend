@@ -25,14 +25,20 @@ export class PackagesController {
 
   @IsPublic()
   @Get()
-  @ApiOperation({ summary: 'Get all packages' })
-  @ApiResponse({ status: 200, description: 'Return all packages.' })
-  @ApiResponse({ status: 404, description: 'No packages found.' })
+  @ApiOperation({ summary: 'Obtener todos los paquetes' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paquetes obtenidos correctamente.',
+  })
+  @ApiResponse({ status: 404, description: 'No se encontraron paquetes.' })
   async findAll(): Promise<Package[]> {
     const packagesFound = await this.packagesService.findAll();
 
     if (!packagesFound || packagesFound.length === 0) {
-      throw new HttpException('No packages found', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'No se encontraron paquetes',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return packagesFound;
@@ -40,17 +46,23 @@ export class PackagesController {
 
   @Roles('ADMIN')
   @Get('active')
-  @ApiOperation({ summary: 'Get all packages with status true' })
+  @ApiOperation({ summary: 'Obtener todos los paquetes activos' })
   @ApiResponse({
     status: 200,
-    description: 'Return all packages with status true.',
+    description: 'Paquetes activos obtenidos correctamente.',
   })
-  @ApiResponse({ status: 404, description: 'No packages found.' })
+  @ApiResponse({
+    status: 404,
+    description: 'No se encontraron paquetes activos.',
+  })
   async findAllActive(): Promise<Package[]> {
     const packagesFound = await this.packagesService.findAllActive();
 
     if (!packagesFound || packagesFound.length === 0) {
-      throw new HttpException('No packages found', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'No se encontraron paquetes activos.',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return packagesFound;
@@ -58,12 +70,15 @@ export class PackagesController {
 
   @Roles('ADMIN')
   @Post()
-  @ApiOperation({ summary: 'Create a new package' })
+  @ApiOperation({ summary: 'Crear un paquete' })
   @ApiResponse({
     status: 201,
-    description: 'The package has been successfully created.',
+    description: 'Paquete creado correctamente.',
   })
-  @ApiResponse({ status: 400, description: 'Invalid input data.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Información del paquete incorrecta.',
+  })
   async create(@Body() createPackageDto: CreatePackageDto): Promise<Package> {
     try {
       const createdPackage =
@@ -71,7 +86,7 @@ export class PackagesController {
 
       if (!createdPackage) {
         throw new HttpException(
-          'Failed to create the package',
+          'No se pudo crear el paquete',
           HttpStatus.BAD_REQUEST,
         );
       }
@@ -79,7 +94,7 @@ export class PackagesController {
       return createdPackage;
     } catch (error) {
       throw new HttpException(
-        error.message || 'Invalid input data',
+        error.message || 'Información del paquete incorrecta',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -87,13 +102,13 @@ export class PackagesController {
 
   @Roles('ADMIN')
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a package by ID' })
+  @ApiOperation({ summary: 'Actualizar un paquete por ID' })
   @ApiResponse({
     status: 200,
-    description: 'The package has been successfully updated.',
+    description: 'Paquete actualizado correctamente.',
   })
-  @ApiResponse({ status: 404, description: 'Package not found.' })
-  @ApiResponse({ status: 400, description: 'Invalid input data.' })
+  @ApiResponse({ status: 404, description: 'Paquete no encontrado.' })
+  @ApiResponse({ status: 400, description: 'Error al actualizar el paquete.' })
   async update(
     @Param('id') id: string,
     @Body() updatePackageDto: UpdatePackageDto,
@@ -105,13 +120,13 @@ export class PackagesController {
       );
 
       if (!updatedPackage) {
-        throw new HttpException('Package not found', HttpStatus.NOT_FOUND);
+        throw new HttpException('Paquete no encontrado', HttpStatus.NOT_FOUND);
       }
 
       return updatedPackage;
     } catch (error) {
       throw new HttpException(
-        error.message || 'Invalid input data',
+        error.message || 'Error al actualizar el paquete',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -119,25 +134,28 @@ export class PackagesController {
 
   @Roles('ADMIN')
   @Patch(':id/change-status')
-  @ApiOperation({ summary: 'Change the status of a package by ID' })
+  @ApiOperation({ summary: 'Cambiar el estado de un paquete por ID' })
   @ApiResponse({
     status: 200,
-    description: 'The package status has been successfully updated.',
+    description: 'Estado del paquete actualizado correctamente.',
   })
-  @ApiResponse({ status: 404, description: 'Package not found.' })
-  @ApiResponse({ status: 400, description: 'Invalid ID format.' })
+  @ApiResponse({ status: 404, description: 'Paquete no encontrado.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Error al cambiar el estado del paquete.',
+  })
   async changeStatus(@Param('id') id: string): Promise<Package> {
     try {
       const updatedStatus = await this.packagesService.changeStatus(+id);
 
       if (!updatedStatus) {
-        throw new HttpException('Package not found', HttpStatus.NOT_FOUND);
+        throw new HttpException('Paquete no encontrado', HttpStatus.NOT_FOUND);
       }
 
       return updatedStatus;
     } catch (error) {
       throw new HttpException(
-        error.message || 'Invalid ID format',
+        error.message || 'Error al cambiar el estado del paquete',
         HttpStatus.BAD_REQUEST,
       );
     }

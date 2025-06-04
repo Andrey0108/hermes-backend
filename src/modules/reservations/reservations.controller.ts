@@ -15,6 +15,7 @@ import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { IsPublic } from '../auth/decorators/public.decorator';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('reservations')
 export class ReservationsController {
@@ -22,6 +23,12 @@ export class ReservationsController {
 
   @Roles('ADMIN', 'GUIDE')
   @Get()
+  @ApiOperation({ summary: 'Obtener todas las reservas' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reservas obtenidas correctamente.',
+  })
+  @ApiResponse({ status: 400, description: 'Error al obtener las reservas.' })
   async findAll() {
     try {
       return await this.reservationsService.findAll();
@@ -32,13 +39,25 @@ export class ReservationsController {
 
   @Roles('ADMIN', 'GUIDE')
   @Get('travelers/:idDate')
+  @ApiOperation({
+    summary: 'Obtener todos los viajeros para una fecha específica',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Viajeros obtenidos correctamente.',
+  })
+  @ApiResponse({ status: 404, description: 'No se encontraron viajeros.' })
+  @ApiResponse({ status: 400, description: 'Error al obtener los viajeros.' })
   async findAllTravelers(@Param('idDate') idDate: string) {
     try {
       const travelers =
         await this.reservationsService.findAllTravelers(+idDate);
 
       if (!travelers || travelers.length === 0) {
-        throw new HttpException('No travelers found', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'No se encontraron viajeros',
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       return travelers;
@@ -49,12 +68,28 @@ export class ReservationsController {
 
   @Roles('ADMIN')
   @Get('reservations-with-payments')
+  @ApiOperation({ summary: 'Obtener todas las reservas con pagos' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reservas con pagos obtenidas correctamente.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No se encontraron reservas con pagos.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Error al obtener las reservas con pagos.',
+  })
   async findAllReservationWithPayments() {
     try {
       const reservation =
         await this.reservationsService.findAllReservationWithPayments();
       if (!reservation || reservation.length === 0) {
-        throw new HttpException('No reservations found', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'No se encontraron reservas con pagos',
+          HttpStatus.NOT_FOUND,
+        );
       }
       return reservation;
     } catch (error) {
@@ -64,6 +99,15 @@ export class ReservationsController {
 
   @Roles('CLIENT')
   @Get('user/:idUser')
+  @ApiOperation({ summary: 'Obtener todas las reservas de un usuario' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reservas del usuario obtenidas correctamente.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Error al obtener las reservas del usuario.',
+  })
   async findAllByUser(@Param('idUser') idUser: string) {
     try {
       return await this.reservationsService.findAllByUser(+idUser);
@@ -74,9 +118,28 @@ export class ReservationsController {
 
   @IsPublic()
   @Post()
+  @ApiOperation({ summary: 'Crear una reserva.' })
+  @ApiResponse({
+    status: 201,
+    description: 'Reserva creada correctamente.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Información de la reserva incorrecta.',
+  })
   async create(@Body() createReservationDto: CreateReservationDto) {
     try {
-      return await this.reservationsService.create(createReservationDto);
+      const createdReservation =
+        await this.reservationsService.create(createReservationDto);
+
+      if (!createdReservation) {
+        throw new HttpException(
+          'Error al crear la reserva',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      return createdReservation;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
@@ -84,6 +147,13 @@ export class ReservationsController {
 
   @Roles('ADMIN')
   @Patch(':id')
+  @ApiOperation({ summary: 'Actualizar una reserva por ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reserva actualizada correctamente.',
+  })
+  @ApiResponse({ status: 404, description: 'Reserva no encontrada.' })
+  @ApiResponse({ status: 400, description: 'Error al actualizar la reserva.' })
   async update(
     @Param('id') id: string,
     @Body() updateReservationDto: UpdateReservationDto,
@@ -95,7 +165,7 @@ export class ReservationsController {
       );
 
       if (!updatedReservation) {
-        throw new HttpException('Reservation not found', HttpStatus.NOT_FOUND);
+        throw new HttpException('Reserva no encontrada', HttpStatus.NOT_FOUND);
       }
 
       return updatedReservation;
@@ -106,6 +176,15 @@ export class ReservationsController {
 
   @Roles('ADMIN')
   @Patch(':id/change-status')
+  @ApiOperation({ summary: 'Cambiar el estado de una reserva por ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Estado de la reserva actualizado correctamente.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Error al cambiar el estado de la reserva.',
+  })
   async changeStatus(@Param('id') id: string, @Body('status') status: string) {
     try {
       return await this.reservationsService.changeStatus(+id, status);
