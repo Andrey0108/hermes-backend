@@ -38,7 +38,7 @@ export class DatesController {
     return dates;
   }
 
-  @Roles('GUIDE')
+  @Roles('GUIDE', 'ADMIN')
   @Get('responsible/:idUser')
   @ApiOperation({ summary: 'Get dates by responsible ID' })
   @ApiResponse({
@@ -49,14 +49,20 @@ export class DatesController {
   async findDatesByResponsible(
     @Param('idUser') idUser: string,
   ): Promise<Date[]> {
-    const dates = await this.datesService.findDatesByResponsible(+idUser);
-    if (!dates || dates.length === 0) {
-      throw new HttpException(
-        'No dates found for this user',
-        HttpStatus.NOT_FOUND,
-      );
+    try {
+      const dates = await this.datesService.findDatesByResponsible(+idUser);
+
+      if (!dates || dates.length === 0) {
+        throw new HttpException(
+          'No dates found for this user',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return dates;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
-    return dates;
   }
 
   @Roles('ADMIN')

@@ -17,52 +17,72 @@ import { UpdateActivityDto } from './dto/update-activity.dto';
 import { Activity } from './entities/activity.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 
-@ApiTags('Activities')
+@ApiTags('Actividades')
 @Controller('activities')
 export class ActivitiesController {
   constructor(private readonly activitiesService: ActivitiesService) {}
 
   @Roles('ADMIN')
   @Get()
-  @ApiOperation({ summary: 'Get all activities' })
-  @ApiResponse({ status: 200, description: 'Return all activities.' })
-  @ApiResponse({ status: 404, description: 'No activities found.' })
+  @ApiOperation({ summary: 'Obtener todas las actividades' })
+  @ApiResponse({ status: 200, description: 'Devuelve todas las actividades.' })
+  @ApiResponse({ status: 404, description: 'No se encontraron actividades.' })
   async findAll(): Promise<Activity[]> {
-    const activitiesFound = await this.activitiesService.findAll();
+    try {
+      const activitiesFound = await this.activitiesService.findAll();
 
-    if (!activitiesFound || activitiesFound.length === 0) {
-      throw new HttpException('No activities found', HttpStatus.NOT_FOUND);
+      if (!activitiesFound || activitiesFound.length === 0) {
+        throw new HttpException(
+          'No se encontraron actividades.',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return activitiesFound;
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Error al obtener las actividades.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    return activitiesFound;
   }
 
   @Roles('ADMIN')
   @Get('active')
-  @ApiOperation({ summary: 'Get all activities with status true' })
+  @ApiOperation({ summary: 'Obtener todas las actividades activas' })
   @ApiResponse({
     status: 200,
-    description: 'Return all activities with status true.',
+    description: 'Devuelve todas las actividades con estado activo.',
   })
-  @ApiResponse({ status: 404, description: 'No activities found.' })
+  @ApiResponse({ status: 404, description: 'No se encontraron actividades.' })
   async findAllActive(): Promise<Activity[]> {
-    const activitiesFound = await this.activitiesService.findAllActive();
+    try {
+      const activitiesFound = await this.activitiesService.findAllActive();
 
-    if (!activitiesFound || activitiesFound.length === 0) {
-      throw new HttpException('No activities found', HttpStatus.NOT_FOUND);
+      if (!activitiesFound || activitiesFound.length === 0) {
+        throw new HttpException(
+          'No se encontraron actividades.',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return activitiesFound;
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Error al obtener las actividades activas.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    return activitiesFound;
   }
 
   @Roles('ADMIN')
   @Post()
-  @ApiOperation({ summary: 'Create a new activity' })
+  @ApiOperation({ summary: 'Crear una nueva actividad' })
   @ApiResponse({
     status: 201,
-    description: 'The activity has been successfully created.',
+    description: 'La actividad ha sido creada exitosamente.',
   })
-  @ApiResponse({ status: 400, description: 'Invalid input data.' })
+  @ApiResponse({ status: 400, description: 'Datos de entrada inválidos.' })
   async create(
     @Body() createActivityDto: CreateActivityDto,
   ): Promise<Activity> {
@@ -72,7 +92,7 @@ export class ActivitiesController {
 
       if (!createdActivity) {
         throw new HttpException(
-          'Failed to create the activity',
+          'No se pudo crear la actividad.',
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
@@ -80,7 +100,7 @@ export class ActivitiesController {
       return createdActivity;
     } catch (error) {
       throw new HttpException(
-        error.message || 'Invalid input data',
+        error.message || 'Datos de entrada inválidos.',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -88,13 +108,13 @@ export class ActivitiesController {
 
   @Roles('ADMIN')
   @Patch(':id')
-  @ApiOperation({ summary: 'Update an activity by ID' })
+  @ApiOperation({ summary: 'Actualizar una actividad por ID' })
   @ApiResponse({
     status: 200,
-    description: 'The activity has been successfully updated.',
+    description: 'La actividad ha sido actualizada exitosamente.',
   })
-  @ApiResponse({ status: 404, description: 'Activity not found.' })
-  @ApiResponse({ status: 400, description: 'Invalid input data.' })
+  @ApiResponse({ status: 404, description: 'Actividad no encontrada.' })
+  @ApiResponse({ status: 400, description: 'Datos de entrada inválidos.' })
   async update(
     @Param('id') id: string,
     @Body() updateActivityDto: UpdateActivityDto,
@@ -106,13 +126,16 @@ export class ActivitiesController {
       );
 
       if (!updatedActivity) {
-        throw new HttpException('Activity not found', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'Actividad no encontrada.',
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       return updatedActivity;
     } catch (error) {
       throw new HttpException(
-        error.message || 'Invalid input data',
+        error.message || 'Datos de entrada inválidos.',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -120,26 +143,29 @@ export class ActivitiesController {
 
   @Roles('ADMIN')
   @Patch(':id/change-status')
-  @ApiOperation({ summary: 'Change the status of an activity by ID' })
+  @ApiOperation({ summary: 'Cambiar el estado de una actividad por ID' })
   @ApiResponse({
     status: 200,
-    description: 'The status of the activity has been successfully changed.',
+    description: 'El estado de la actividad ha sido cambiado exitosamente.',
   })
-  @ApiResponse({ status: 404, description: 'Activity not found.' })
-  @ApiResponse({ status: 400, description: 'Invalid input data.' })
+  @ApiResponse({ status: 404, description: 'Actividad no encontrada.' })
+  @ApiResponse({ status: 400, description: 'Datos de entrada inválidos.' })
   async changeStatus(@Param('id') id: string): Promise<Activity> {
     try {
       const updatedActivity: Activity =
         await this.activitiesService.changeStatus(+id);
 
       if (!updatedActivity) {
-        throw new HttpException('Activity not found', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'Actividad no encontrada.',
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       return updatedActivity;
     } catch (error) {
       throw new HttpException(
-        error.message || 'Invalid input data',
+        error.message || 'Datos de entrada inválidos.',
         HttpStatus.BAD_REQUEST,
       );
     }
