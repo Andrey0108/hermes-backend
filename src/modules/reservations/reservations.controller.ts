@@ -97,7 +97,7 @@ export class ReservationsController {
     }
   }
 
-  @Roles('CLIENT')
+  @Roles('CLIENT', 'ADMIN')
   @Get('user/:idUser')
   @ApiOperation({ summary: 'Obtener todas las reservas de un usuario' })
   @ApiResponse({
