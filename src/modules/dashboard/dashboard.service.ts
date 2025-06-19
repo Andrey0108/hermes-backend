@@ -12,7 +12,7 @@ export class DashboardService {
           r.id,
           r.date,
           r.price as total_price,
-          SUM(p.price) as paid_amount
+          SUM(p.pay) as paid_amount
         FROM reservations r
         LEFT JOIN payments p ON p."idReservation" = r.id
         WHERE p.status = 'C'
@@ -69,12 +69,12 @@ export class DashboardService {
           EXTRACT(YEAR FROM r.date) as year,
           EXTRACT(MONTH FROM r.date) as month,
           r.price as total_price,
-          SUM(CASE WHEN p.status = 'C' THEN p.price ELSE 0 END) as paid_amount
+          SUM(CASE WHEN p.status = 'C' THEN p.pay ELSE 0 END) as paid_amount
         FROM reservations r
         JOIN dates d ON r."idDate" = d.id
         LEFT JOIN payments p ON p."idReservation" = r.id
         GROUP BY r.id, r.date, d."idPackage", r.price
-        HAVING SUM(CASE WHEN p.status = 'C' THEN p.price ELSE 0 END) >= r.price
+        HAVING SUM(CASE WHEN p.status = 'C' THEN p.pay ELSE 0 END) >= r.price
       )
       SELECT 
         cr.year,
