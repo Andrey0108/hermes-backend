@@ -4,13 +4,14 @@
 import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Roles } from '../auth/decorators/roles.decorator';
+// import { Roles } from '../auth/decorators/roles.decorator';
+import { IsPublic } from '../auth/decorators/public.decorator';
 
 @Controller('dashboard')
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  @Roles('ADMIN')
+  @IsPublic()
   @Get('sales')
   @ApiOperation({ summary: 'Get sales data' })
   @ApiResponse({ status: 200, description: 'Return sales data.' })
@@ -32,7 +33,7 @@ export class DashboardController {
     }
   }
 
-  @Roles('ADMIN')
+  @IsPublic()
   @Get('package-sales')
   @ApiOperation({ summary: 'Get package sales data' })
   @ApiResponse({ status: 200, description: 'Return package sales data.' })
@@ -57,7 +58,7 @@ export class DashboardController {
     }
   }
 
-  @Roles('ADMIN')
+  @IsPublic()
   @Get('top-clients')
   @ApiOperation({ summary: 'Get top clients data' })
   @ApiResponse({ status: 200, description: 'Return top clients data.' })

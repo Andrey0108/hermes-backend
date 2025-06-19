@@ -7,7 +7,7 @@ export class DashboardService {
   async sales(): Promise<any> {
     const rawData: { date: string; count: number }[] = await this.prisma
       .$queryRaw` 
-      WITH TotalPayments AS (
+            WITH TotalPayments AS (
         SELECT  
           r.id,
           r.date,
@@ -15,7 +15,7 @@ export class DashboardService {
           SUM(p.pay) as paid_amount
         FROM reservations r
         LEFT JOIN payments p ON p."idReservation" = r.id
-        WHERE p.status = 'C'
+        WHERE p.status = 'P' AND r.status = 'P'
         GROUP BY r.id, r.date, r.price
       )
       SELECT 
@@ -36,7 +36,7 @@ export class DashboardService {
       return date.toLocaleString('es-ES', { month: 'long' }).toUpperCase();
     });
 
-    const data = rawData.map((item) => item.count);
+    const data = rawData.map((item) => Number(item.count)); // Convert BigInt to Number
 
     const datasets = [
       {
@@ -69,12 +69,13 @@ export class DashboardService {
           EXTRACT(YEAR FROM r.date) as year,
           EXTRACT(MONTH FROM r.date) as month,
           r.price as total_price,
-          SUM(CASE WHEN p.status = 'C' THEN p.pay ELSE 0 END) as paid_amount
+          SUM(CASE WHEN p.status = 'P' THEN p.pay ELSE 0 END) as paid_amount
         FROM reservations r
         JOIN dates d ON r."idDate" = d.id
         LEFT JOIN payments p ON p."idReservation" = r.id
+        WHERE r.status = 'P'
         GROUP BY r.id, r.date, d."idPackage", r.price
-        HAVING SUM(CASE WHEN p.status = 'C' THEN p.pay ELSE 0 END) >= r.price
+        HAVING SUM(CASE WHEN p.status = 'P' THEN p.pay ELSE 0 END) >= r.price
       )
       SELECT 
         cr.year,
@@ -104,7 +105,7 @@ export class DashboardService {
         const entry = rawData.find(
           (item) => item.package_name === packageName && item.month === month,
         );
-        return entry ? entry.total_sales : 0;
+        return entry ? Number(entry.total_sales) : 0; // Convert BigInt to Number
       });
 
       return {
@@ -150,7 +151,7 @@ export class DashboardService {
         COALESCE(SUM(r.price), 0) as total_spent
       FROM users u
       JOIN reservations r ON r."idUser" = u.id
-      WHERE r.status = 'c'
+      WHERE r.status = 'P'
       GROUP BY u.name, u."surName"
       ORDER BY total_reservations DESC, total_spent DESC
       LIMIT 3;
@@ -162,8 +163,8 @@ export class DashboardService {
 
     return rawData.map((client) => ({
       name: `${client.name} ${client.surName}`,
-      purchases: client.total_reservations,
-      total: client.total_spent,
+      purchases: Number(client.total_reservations), // Convert BigInt to Number
+      total: Number(client.total_spent), // Convert BigInt to Number
     }));
   }
 }
