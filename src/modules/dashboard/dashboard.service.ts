@@ -6,9 +6,9 @@ export class DashboardService {
   constructor(private readonly prisma: PrismaService) {}
   async sales(): Promise<any> {
     const rawData: { date: string; count: number }[] = await this.prisma
-      .$queryRaw`
+      .$queryRaw` 
       WITH TotalPayments AS (
-        SELECT 
+        SELECT  
           r.id,
           r.date,
           r.price as total_price,
