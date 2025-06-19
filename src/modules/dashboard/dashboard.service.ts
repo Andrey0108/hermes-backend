@@ -27,14 +27,20 @@ export class DashboardService {
     `;
   }
 
-  async packageSales(): Promise<any[]> {
-    return await this.prisma.$queryRaw`
+  async packageSales(): Promise<any> {
+    const rawData: {
+      year: number;
+      month: number;
+      package_name: string;
+      total_sales: number;
+    }[] = await this.prisma.$queryRaw`
       WITH CompletedReservations AS (
         SELECT 
           r.id,
           r.date,
           d."idPackage",
           EXTRACT(YEAR FROM r.date) as year,
+          EXTRACT(MONTH FROM r.date) as month,
           r.price as total_price,
           SUM(CASE WHEN p.status = 'C' THEN p.price ELSE 0 END) as paid_amount
         FROM reservations r
@@ -45,13 +51,62 @@ export class DashboardService {
       )
       SELECT 
         cr.year,
+        cr.month,
         p.name as package_name,
         COUNT(DISTINCT cr.id) as total_sales
       FROM CompletedReservations cr
       JOIN packages p ON cr."idPackage" = p.id
-      GROUP BY cr.year, p.name, p.id
-      ORDER BY cr.year DESC, total_sales DESC;
+      GROUP BY cr.year, cr.month, p.name, p.id
+      ORDER BY cr.year DESC, cr.month ASC, total_sales DESC;
     `;
+
+    if (!rawData || rawData.length === 0) {
+      return { labels: [], datasets: [] };
+    }
+
+    const labels = Array.from(
+      new Set(rawData.map((item) => `Mes ${item.month}`)),
+    );
+    const packageNames = Array.from(
+      new Set(rawData.map((item) => item.package_name)),
+    );
+
+    const datasets = packageNames.map((packageName) => {
+      const data = labels.map((label) => {
+        const month = parseInt(label.split(' ')[1], 10);
+        const entry = rawData.find(
+          (item) => item.package_name === packageName && item.month === month,
+        );
+        return entry ? entry.total_sales : 0;
+      });
+
+      return {
+        label: packageName,
+        backgroundColor: this.getColorForPackage(packageName),
+        data,
+      };
+    });
+
+    return { labels, datasets };
+  }
+
+  private getColorForPackage(packageName: string): string {
+    const colorMap: { [key: string]: string } = {
+      Cartagena: '#FCD34D',
+      Baru: '#22C55E',
+      'Santa Marta': '#EC4899',
+      Covenas: '#8B5CF6',
+    };
+    return colorMap[packageName] || this.getRandomColor();
+  }
+
+  private getRandomColor(): string {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
   }
 
   async topClients(): Promise<any[]> {
