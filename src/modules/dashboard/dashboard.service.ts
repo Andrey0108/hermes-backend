@@ -4,8 +4,9 @@ import { PrismaService } from 'src/config/prisma/prisma.service';
 @Injectable()
 export class DashboardService {
   constructor(private readonly prisma: PrismaService) {}
-  async sales() {
-    return await this.prisma.$queryRaw`
+  async sales(): Promise<any> {
+    const rawData: { date: string; count: number }[] = await this.prisma
+      .$queryRaw`
       WITH TotalPayments AS (
         SELECT 
           r.id,
@@ -25,6 +26,32 @@ export class DashboardService {
       GROUP BY DATE(date)
       ORDER BY date ASC;
     `;
+
+    if (!rawData || rawData.length === 0) {
+      return { labels: [], datasets: [] };
+    }
+
+    const labels = rawData.map((item) => {
+      const date = new Date(item.date);
+      return date.toLocaleString('es-ES', { month: 'long' }).toUpperCase();
+    });
+
+    const data = rawData.map((item) => item.count);
+
+    const datasets = [
+      {
+        data,
+        backgroundColor: [
+          '#6366F1',
+          '#F59E0B',
+          '#EC4899',
+          '#581C87',
+          '#DC2626',
+        ],
+      },
+    ];
+
+    return { labels, datasets };
   }
 
   async packageSales(): Promise<any> {
@@ -110,16 +137,33 @@ export class DashboardService {
   }
 
   async topClients(): Promise<any[]> {
-    return await this.prisma.$queryRaw`
+    const rawData: {
+      name: string;
+      surName: string;
+      total_reservations: number;
+      total_spent: number;
+    }[] = await this.prisma.$queryRaw`
       SELECT 
         u.name,
         u."surName",
-        COUNT(r.id) as total_reservations
+        COUNT(r.id) as total_reservations,
+        COALESCE(SUM(r.price), 0) as total_spent
       FROM users u
       JOIN reservations r ON r."idUser" = u.id
+      WHERE r.status = 'c'
       GROUP BY u.name, u."surName"
-      ORDER BY total_reservations DESC
-      LIMIT 10;
+      ORDER BY total_reservations DESC, total_spent DESC
+      LIMIT 3;
     `;
+
+    if (!rawData || rawData.length === 0) {
+      return [];
+    }
+
+    return rawData.map((client) => ({
+      name: `${client.name} ${client.surName}`,
+      purchases: client.total_reservations,
+      total: client.total_spent,
+    }));
   }
 }
