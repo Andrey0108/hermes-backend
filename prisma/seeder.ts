@@ -7,7 +7,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create country
+  // Create countries
   const countries = await prisma.$transaction(async (prisma) => {
     const countries_ = await prisma.countries.createMany({
       data: [
@@ -20,7 +20,7 @@ async function main() {
     return countries_;
   });
 
-  // Create department
+  // Create departments
   const departments = await prisma.$transaction(async (prisma) => {
     const departments_ = await prisma.departments.createMany({
       data: [
@@ -190,7 +190,7 @@ async function main() {
     return departments_;
   });
 
-  // Create municipality
+  // Create municipalities
   const municipalities = await prisma.$transaction(async (prisma) => {
     const municipalities_ = await prisma.municipalities.createMany({
       data: [

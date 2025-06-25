@@ -2,8 +2,8 @@
 /dist
 /node_modules
 /build
-/prisma/migrations
 /prisma/database
+/prisma/migrations
 /images
 
 # Logs
